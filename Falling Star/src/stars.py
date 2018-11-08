@@ -17,9 +17,9 @@ class Stars(g.GameObject):
         Constructor
         '''
         super().__init__(canvas, width, height, mywidth=50, myheight=50)
-        self.starList = []
+        self.objList = []
     
-    def createStar(self, color):
+    def create(self, color):
         """ Create 5-point star """
         factor=5
         star = self.canvas.create_polygon(self.width/2, 0, self.width/2+factor, self.height/2-factor,
@@ -33,9 +33,9 @@ class Stars(g.GameObject):
     def add(self, color):
         """ Add a star with specified color to top of screen. First 3 stars are spaced evenly,
         additional stars are placed randomly across top of screen. """
-        star = self.createStar(color)
-        self.starList.append(star)
-        nstars = len(self.starList)
+        star = self.create(color)
+        self.objList.append(star)
+        nstars = len(self.objList)
         
         if nstars == 2:
             self.canvas.move(star, self.canvas_width/2-self.width/2, 0)
@@ -43,18 +43,21 @@ class Stars(g.GameObject):
             self.canvas.move(star, self.canvas_width-self.width, 0)
         elif nstars > 1:
             x = random.randint(0, self.canvas_width-self.width)
-            print('New star added, moving right {} pixels'.format(x))
             self.canvas.move(star, x, 0)
                
+    def remove(self, objID):
+        self.canvas.delete(objID)
+        self.objList.remove(objID)
+        
     def getID(self):
         """ Returns list of canvas object IDs """
-        return self.starList
+        return self.objList
             
     def update(self):
         """ Drop stars; if star reaches bottom of screen, move star to top of screen
         Returns the number of stars that reached bottom of screen """
         reached_bottom = 0
-        for star in self.starList:
+        for star in self.objList:
             self.canvas.move(star, 0, random.randint(1,5))
             star_bbox = self.canvas.bbox(star)
             if (star_bbox[3] >= self.canvas_height):
