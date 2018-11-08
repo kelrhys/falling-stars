@@ -9,8 +9,7 @@ import speed
 import missiles
 
 """ TODO: 
-Enhancements: shoot stars!?, try images, consecutive bonus bonus, refactor update and
-collision detection to be cleaner? """
+Enhancements: refactor update and collision detection to be cleaner, try images """
 
 # Global declarations
 root = tk.Tk()
