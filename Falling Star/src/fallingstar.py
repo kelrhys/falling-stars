@@ -6,9 +6,11 @@ import bonus
 import shield
 import stars
 import speed
+import missiles
 
 """ TODO: 
-Enhancements: checkin to github, shoot stars!?, try images, consecutive bonus bonus """
+Enhancements: shoot stars!?, try images, consecutive bonus bonus, refactor update and
+collision detection to be cleaner? """
 
 # Global declarations
 root = tk.Tk()
@@ -23,15 +25,18 @@ bonusHandle = None
 shieldHandle = None
 starsHandle = None
 speedHandle = None
+missilesHandle = None
 ship = None
 scoreText = None
 default_speed = 5
 fast_speed = 10
 distance = default_speed
+ship_height=25
+ship_width=25
 
 def setup():
-    global bonusHandle, shieldHandle, starsHandle, speedHandle, ship, scoreText
-    global running, score, distance
+    global bonusHandle, shieldHandle, starsHandle, speedHandle, missilesHandle
+    global ship, scoreText, running, score, distance
     running = True
     score=0
     distance=default_speed
@@ -47,8 +52,6 @@ def setup():
     bonusHandle = bonus.Bonus(canvas, window_width, window_height)
     
     # Create ship
-    ship_height=25
-    ship_width=25
     ship_start_y=window_height-ship_height
     ship = canvas.create_polygon(ship_width/2, ship_start_y, ship_width, ship_height+ship_start_y, 0, ship_height+ship_start_y,
                                  outline='white', fill='green')
@@ -61,6 +64,9 @@ def setup():
     
     # Create speed handle for later use - does not display yet
     speedHandle = speed.Speed(canvas, window_width, window_height)
+    
+    # Create missiles handle for later use
+    missilesHandle = missiles.Missiles(canvas, window_width, window_height)
     
 # Handle keyboard control of ship movement
 def key(event):
@@ -79,6 +85,10 @@ def key(event):
     if event.keysym == 'Right':
         if (canvas.coords(ship)[2] < window_width-2):
             canvas.move(ship, distance, 0)
+    if event.keysym == 'space':
+        # Shoot a missile
+        bbox = canvas.bbox(ship)
+        missilesHandle.add(bbox[0]+ship_width/2, bbox[1]-2)
 
 # Handle closing application
 def close_app():
@@ -93,17 +103,17 @@ def restart_game():
     setup()
     game_action_loop()
 
-def get_collision():
-    """ Returns list of object(s) ship collided with or False if no collision """
-    coords = canvas.bbox(ship)
+def get_collision(target):
+    """ Returns list of object(s) target collided with or False if no collision """
+    coords = canvas.bbox(target)
     overlap = canvas.find_overlapping(coords[0], coords[1], coords[2], coords[3])
     if len(overlap) == 1:
-        # No collision - overlap always includes ship itself
+        # No collision - overlap always includes target itself
         return False
     else:
-        # return list of collided object IDs (not including ship)
-        ship_index = overlap.index(ship)
-        collisions = overlap[:ship_index] + overlap[ship_index+1:]
+        # return list of collided object IDs (not including target)
+        target_index = overlap.index(target)
+        collisions = overlap[:target_index] + overlap[target_index+1:]
         return collisions
 
 def game_action_loop():
@@ -142,7 +152,7 @@ def game_action_loop():
 
         # Speed up object movement and add more stars
         # as game goes on, to make it get harder
-        if drop_count % 200 == 0:
+        if drop_count % 100 == 0:  
             starsHandle.add('red')
             if sleep_time > .0005:
                 sleep_time -= .0005
@@ -151,10 +161,23 @@ def game_action_loop():
         # Stars update() returns number of stars that reached bottom during update
         score += starsHandle.update()
 
+        missilesHandle.update()
+        
         bonusHandle.update()
         
-        # Handle collisions
-        collidedList = get_collision()
+        # Handle collisions with missiles
+        for missile in missilesHandle.getID():
+            collidedList = get_collision(missile)
+            if collidedList:
+                for star in starsHandle.getID():
+                    if star in collidedList:
+                        print('Missile hit star - score 5 points!')
+                        score += 5
+                        missilesHandle.remove(missile)
+                        starsHandle.remove(star)
+                        
+        # Handle collisions with ship
+        collidedList = get_collision(ship)
         if collidedList:
             #print('Ship collided with {} - len: {}!'.format(collidedList, len(collidedList)))
 
@@ -180,8 +203,8 @@ def game_action_loop():
                     # Game loop will exit here because new toplevel window is created
                     """ Display final score and top 10 list in a popup window. Prompt user for name
                     if score makes the top 10 list, and allow user to choose to restart or quit game. """
-                    hs.HighScorePopup(root, close_app, restart_game, score)
-
+                    hs.HighScorePopup(root, close_app, restart_game, score)       
+                        
 """ Main code execution """
 # Setup game
 setup()

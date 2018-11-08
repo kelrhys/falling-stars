@@ -29,7 +29,7 @@ class HighScorePopup:
         except IOError as e:
             print('Error opening high score file: {}'.format(e))
         
-    def __init__(self, root, close_callback, restart_callback, score, fn='fallingstar.highscores.json'):
+    def __init__(self, root, close_callback, restart_callback, score, fn='../data/fallingstar.highscores.json'):
         '''
         Constructor
         '''
