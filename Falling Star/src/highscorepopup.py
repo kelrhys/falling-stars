@@ -4,6 +4,7 @@ Created on Nov 1, 2018
 @author: Rebecca
 '''
 import json
+import os
 import tkinter as tk
 from tkinter import ttk
 
@@ -15,7 +16,7 @@ class HighScorePopup:
     '''
     def load_scores(self):
         try:
-            with open(self.filename, 'r') as f:
+            with open(self.folder+self.filename, 'r') as f:
                 self.highscores = json.load(f)
                 print('High score list loaded')
         except IOError as e:
@@ -23,22 +24,24 @@ class HighScorePopup:
     
     def save_scores(self):
         try:
-            with open(self.filename, 'w') as f:
+            with open(self.folder+self.filename, 'w') as f:
                 json.dump(self.highscores, f)
                 print('High score list saved')
         except IOError as e:
             print('Error opening high score file: {}'.format(e))
         
-    def __init__(self, root, close_callback, restart_callback, score, fn='../data/fallingstar.highscores.json'):
+    def __init__(self, root, close_callback, restart_callback, score, fn='fallingstar.highscores.json'):
         '''
         Constructor
         '''
         self.close_callback = close_callback
         self.restart_callback = restart_callback
         self.finalscore = score
+        self.folder = "data/"
         self.filename = fn
         self.highscores = []
         
+        os.makedirs(self.folder, exist_ok=True)
         self.load_scores()
         self.show(root)
         
