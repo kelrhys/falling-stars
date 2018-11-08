@@ -122,7 +122,6 @@ class HighScorePopup:
         self.window.destroy()
         
 def test():
-    import os
     root = tk.Tk()
 
 
