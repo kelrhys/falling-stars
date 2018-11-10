@@ -31,19 +31,12 @@ class Stars(g.GameObject):
         return star
 
     def add(self, color):
-        """ Add a star with specified color to top of screen. First 3 stars are spaced evenly,
-        additional stars are placed randomly across top of screen. """
+        """ Add a star with specified color to top of screen. Stars are placed randomly across top of screen. """
         star = self.create(color)
         self.objList.append(star)
-        nstars = len(self.objList)
-        
-        if nstars == 2:
-            self.canvas.move(star, self.canvas_width/2-self.width/2, 0)
-        elif nstars == 3:
-            self.canvas.move(star, self.canvas_width-self.width, 0)
-        elif nstars > 1:
-            x = random.randint(0, self.canvas_width-self.width)
-            self.canvas.move(star, x, 0)
+    
+        x = random.randint(0, self.canvas_width-self.width)
+        self.canvas.move(star, x, 0)
                
     def remove(self, objID):
         self.canvas.delete(objID)

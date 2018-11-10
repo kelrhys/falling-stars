@@ -33,6 +33,9 @@ fast_speed = 10
 distance = default_speed
 ship_height=25
 ship_width=25
+# This dictionary stores the current pressed status of the arrow keys
+# (pressed: True, released: False) and will be modified by Pressing or Releasing each key
+pressedStatus = {"Up": False, "Down": False, "Left": False, "Right": False, "space": False}
 
 def setup():
     global bonusHandle, shieldHandle, starsHandle, speedHandle, missilesHandle
@@ -67,38 +70,39 @@ def setup():
     
     # Create missiles handle for later use
     missilesHandle = missiles.Missiles(canvas, window_width, window_height)
-    
-# Handle keyboard control of ship movement
-def key(event):
-    if not running:
-        return
-    
+
+# Game action key events - stored in dictionary to capture and preserve state 
+# when multiple keys are held down simultaneously (eg for diagonal movement)
+def pressed(event):
+    # When the key "event.keysym" is pressed, set its pressed status to True
+    pressedStatus[event.keysym] = True
+
+def released(event):
+    # When the key "event.keysym" is released, set its pressed status to False
+    pressedStatus[event.keysym] = False
+
+def set_bindings():
+    # Bind the (← ↑ → ↓) keys's Press and Release events
+    for keyname in pressedStatus.keys():
+        root.bind("<KeyPress-{}>".format(keyname), pressed)
+        root.bind("<KeyRelease-{}>".format(keyname), released)
+       
+# Handle keyboard control of ship movement and missile shooting
+def handleKeys(): 
     bbox = canvas.bbox(ship)
-    if event.keysym == 'Up' or event.keysym == '8':
+    if pressedStatus["Up"] == True:
         if (bbox[1] > distance):
             canvas.move(ship, 0, -distance)
-    elif event.keysym == 'Down' or event.keysym == '2':
+    elif pressedStatus["Down"] == True:
         if (bbox[3] < window_height-distance):
             canvas.move(ship, 0, distance)
-    if event.keysym == 'Left' or event.keysym == '4':
+    if pressedStatus["Left"] == True:
         if (bbox[0] > distance):
             canvas.move(ship, -distance, 0)
-    if event.keysym == 'Right' or event.keysym == '6':
+    if pressedStatus["Right"] == True:
         if (bbox[2] < window_width-distance):
             canvas.move(ship, distance, 0)
-    if event.keysym == '7':
-        if (bbox[0] > distance/2 and bbox[1] > distance/2):
-            canvas.move(ship, -(distance/2), -(distance/2))
-    if event.keysym == '9':
-        if (bbox[2] < window_width-(distance/2) and bbox[1] > distance/2):
-            canvas.move(ship, distance/2, -(distance/2))
-    if event.keysym == '1':
-        if (bbox[0] > distance/2 and bbox[3] < window_height-(distance/2)):
-            canvas.move(ship, -(distance/2), distance/2)
-    if event.keysym == '3':
-        if (bbox[2] < window_width-(distance/2) and bbox[3] < window_height-(distance/2)):
-            canvas.move(ship, distance/2, distance/2)
-    if event.keysym == 'space':
+    if pressedStatus["space"] == True:
         # Shoot a missile
         missilesHandle.add(bbox[0]+ship_width/2, bbox[1]-2)
 
@@ -136,10 +140,21 @@ def game_action_loop():
     
     # Game action loop
     while running:
+        # Handle keyboard input for ship movement and missile shooting
+        handleKeys()
+        
         # Redraw canvas; update score and counter
         canvas.update()
         canvas.itemconfigure(scoreText, text=score)
         drop_count += 1
+
+        # Speed up object movement and add more stars
+        # as game goes on, to make it get harder
+        if drop_count % 100 == 0:  
+            starsHandle.add('red')
+            if sleep_time > .0005:
+                sleep_time -= .0005
+        time.sleep(sleep_time)
 
         # Randomly display shield 
         if drop_count % random.randint(1, 200) == 0:
@@ -162,14 +177,6 @@ def game_action_loop():
             canvas.itemconfigure(ship, outline='white')
             distance = default_speed
 
-        # Speed up object movement and add more stars
-        # as game goes on, to make it get harder
-        if drop_count % 100 == 0:  
-            starsHandle.add('red')
-            if sleep_time > .0005:
-                sleep_time -= .0005
-        time.sleep(sleep_time)
-
         # Stars update() returns number of stars that reached bottom during update
         score += starsHandle.update()
 
@@ -177,7 +184,7 @@ def game_action_loop():
         
         bonusHandle.update()
         
-        # Handle collisions with missiles
+        # Handle missile collisions
         for missile in missilesHandle.getID():
             collidedList = get_collision(missile)
             if collidedList:
@@ -187,7 +194,7 @@ def game_action_loop():
                         score += 5
                         missilesHandle.remove(missile)
                         starsHandle.remove(star)
-                        
+
         # Handle collisions with ship
         collidedList = get_collision(ship)
         if collidedList:
@@ -223,8 +230,9 @@ setup()
 
 # Register for application close event
 root.protocol("WM_DELETE_WINDOW", close_app)
+
 # Register for key press events
-root.bind("<Key>", key)
+set_bindings()
 
 # Start game
 game_action_loop()
