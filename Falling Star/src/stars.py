@@ -16,7 +16,7 @@ class Stars(g.GameObject):
         '''
         Constructor
         '''
-        super().__init__(canvas, width, height, mywidth=50, myheight=50)
+        super().__init__(canvas, width, height, mywidth=40, myheight=40)
         self.objList = []
     
     def create(self, color):

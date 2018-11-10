@@ -9,7 +9,8 @@ import speed
 import missiles
 
 """ TODO: 
-Enhancements: refactor update and collision detection to be cleaner, try images """
+Enhancements: missiles knock out all game objects; 
+refactor update and collision detection to be cleaner, bonus image """
 
 # Global declarations
 root = tk.Tk()
@@ -72,21 +73,33 @@ def key(event):
     if not running:
         return
     
-    if event.keysym == 'Up':
-        if (canvas.coords(ship)[1] > 2):
+    bbox = canvas.bbox(ship)
+    if event.keysym == 'Up' or event.keysym == '8':
+        if (bbox[1] > distance):
             canvas.move(ship, 0, -distance)
-    elif event.keysym == 'Down':
-        if (canvas.coords(ship)[3] < window_height-2):
+    elif event.keysym == 'Down' or event.keysym == '2':
+        if (bbox[3] < window_height-distance):
             canvas.move(ship, 0, distance)
-    if event.keysym == 'Left':
-        if (canvas.coords(ship)[4] > 2):
+    if event.keysym == 'Left' or event.keysym == '4':
+        if (bbox[0] > distance):
             canvas.move(ship, -distance, 0)
-    if event.keysym == 'Right':
-        if (canvas.coords(ship)[2] < window_width-2):
+    if event.keysym == 'Right' or event.keysym == '6':
+        if (bbox[2] < window_width-distance):
             canvas.move(ship, distance, 0)
+    if event.keysym == '7':
+        if (bbox[0] > distance/2 and bbox[1] > distance/2):
+            canvas.move(ship, -(distance/2), -(distance/2))
+    if event.keysym == '9':
+        if (bbox[2] < window_width-(distance/2) and bbox[1] > distance/2):
+            canvas.move(ship, distance/2, -(distance/2))
+    if event.keysym == '1':
+        if (bbox[0] > distance/2 and bbox[3] < window_height-(distance/2)):
+            canvas.move(ship, -(distance/2), distance/2)
+    if event.keysym == '3':
+        if (bbox[2] < window_width-(distance/2) and bbox[3] < window_height-(distance/2)):
+            canvas.move(ship, distance/2, distance/2)
     if event.keysym == 'space':
         # Shoot a missile
-        bbox = canvas.bbox(ship)
         missilesHandle.add(bbox[0]+ship_width/2, bbox[1]-2)
 
 # Handle closing application

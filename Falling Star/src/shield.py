@@ -5,6 +5,7 @@ Created on Nov 2, 2018
 '''
 import random
 import time
+import tkinter as tk
 import gameobject as g
 import gametimer as t
 
@@ -24,10 +25,15 @@ class Shield(g.GameObject, t.GameTimer):
     def add(self):
         xoff = random.randint(0, self.canvas_width-self.width)
         yoff = random.randint(0, self.canvas_height-self.height)
+        '''
         self.objID = self.canvas.create_polygon(0+xoff, 5+yoff, self.width/2+xoff, 0+yoff, self.width+xoff, 5+yoff, self.width/2+xoff, self.height+yoff,
                                        outline='white', fill='gold')
+        '''
+        self.shieldImage = tk.PhotoImage(file="../img/goldshield.gif")
+        self.objID = self.canvas.create_image(xoff, yoff, image=self.shieldImage, anchor=tk.NW)
+        
         self.uptime = random.randint(1, 10)
-        print('Displaying shield for {} seconds'.format(self.uptime))
+        print('Displaying shield for {} seconds at {},{}'.format(self.uptime, xoff, yoff))
         self.start_time = time.time()
             
     def update(self):
